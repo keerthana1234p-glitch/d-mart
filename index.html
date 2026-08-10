@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PocketMart</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body class="min-h-screen bg-[url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1920&auto=format&fit=crop')] bg-cover bg-center bg-fixed relative flex items-center justify-center p-4">
+
+  <div class="fixed inset-0 bg-white/15 pointer-events-none"></div>
+
+  <!-- React Root Container -->
+  <div id="root" class="w-full relative z-10 flex justify-center"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function PocketMart() {
+      // Initial Grocery List
+      const [items, setItems] = useState([
+        { id: 1, name: 'Brocoli', price: 50, qty: 2, bought: false },
+        { id: 2, name: 'Brinjal', price: 40, qty: 1, bought: false },
+        { id: 3, name: 'Avocados', price: 150, qty: 4, bought: false },
+        { id: 4, name: 'Papaya', price: 50, qty: 2, bought: false },
+        { id: 5, name: 'Cabbage', price: 50, qty: 1, bought: true },
+        { id: 6, name: 'Cucumbers', price: 69, qty: 4, bought: false },
+        { id: 7, name: 'Spinach', price: 109, qty: 2, bought: false },
+        { id: 8, name: 'Coriander leaves', price: 30, qty: 1, bought: false },
+        { id: 9, name: 'Capsicum', price: 90, qty: 4, bought: false },
+        { id: 10, name: 'Cauliflower', price: 50, qty: 2, bought: false }
+      ]);
+
+      // Form State Inputs
+      const [name, setName] = useState('');
+      const [qty, setQty] = useState(1);
+      const [price, setPrice] = useState('');
+      const [showBill, setShowBill] = useState(false);
+
+      // Handler to Add New Item
+      const handleAddItem = (e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        setItems([
+          { 
+            id: Date.now(), 
+            name: name.trim(), 
+            qty: Number(qty) || 1, 
+            price: Number(price) || 0, 
+            bought: false 
+          }, 
+          ...items
+        ]);
+        setName('');
+        setQty(1);
+        setPrice('');
+      };
+
+      // FILTERED CALCULATIONS: ONLY SELECTED/BOUGHT ITEMS COUNT TOWARDS BILL
+      const selectedItems = items.filter(item => item.bought);
+      const selectedTotalPrice = selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
+      
+      const calculatedSubtotal = (Number(qty) || 1) * (Number(price) || 0);
+
+      const toggleBought = (id) => {
+        setItems(items.map(i => i.id === id ? { ...i, bought: !i.bought } : i));
+      };
+
+      const deleteItem = (id) => {
+        setItems(items.filter(i => i.id !== id));
+      };
+
+      return (
+        <main className="w-full max-w-lg bg-white/95 backdrop-blur-md rounded-3xl border border-white/60 shadow-2xl shadow-slate-900/30 p-6 sm:p-8 my-8">
+          
+          {/* Header */}
+          <header className="mb-6 pb-5 border-b border-slate-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100/80">🛒</span>
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+                    Pocket<span className="text-emerald-600">Mart</span>
+                  </h1>
+                </div>
+                <p className="text-xs text-slate-400 mt-1 pl-1">Your smart digital shopping companion</p>
+              </div>
+
+              <div className="flex gap-2">
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-100">
+                  {selectedItems.length} / {items.length} Selected
+                </span>
+                <span className="px-3 py-1 bg-slate-900 text-white text-xs font-semibold rounded-full shadow-sm">
+                  Total: ₹{selectedTotalPrice}
+                </span>
+              </div>
+            </div>
+          </header>
+
+          {/* Add Item Form */}
+          <form onSubmit={handleAddItem} className="mb-6">
+            <div className="flex gap-2 items-start">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Add grocery item..."
+                className="flex-1 py-3 px-4 bg-slate-50 hover:bg-slate-100/80 text-sm text-slate-700 rounded-2xl border border-slate-200/60 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all"
+              />
+              
+              <div className="flex flex-col items-center">
+                <input
+                  type="number"
+                  min="1"
+                  value={qty}
+                  onChange={(e) => setQty(e.target.value)}
+                  placeholder="Qty"
+                  className="w-16 py-3 text-center bg-slate-50 text-sm font-semibold text-slate-700 rounded-2xl border border-slate-200/60 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all"
+                />
+                <span className="text-[10px] text-slate-400 mt-1 font-medium">Qty</span>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <div className="relative w-28">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Unit Price"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full py-3 pl-7 pr-3 bg-slate-50 text-sm font-semibold text-slate-700 rounded-2xl border border-slate-200/60 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+                <span className="text-[10px] text-emerald-600 font-bold mt-1">
+                  {price > 0 ? `Total: ₹${calculatedSubtotal}` : 'Unit Price'}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-2xl transition-all shadow-md shadow-emerald-600/20"
+              >
+                Add
+              </button>
+            </div>
+          </form>
+
+          {/* Action Bar: Toggle Receipt */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold text-slate-700">Shopping Items</h2>
+            <button 
+              onClick={() => setShowBill(!showBill)}
+              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm flex items-center gap-1.5"
+            >
+              📄 {showBill ? "Hide Bill" : "View Final Bill"}
+            </button>
+          </div>
+
+          {/* RECEIPT / BILL CARD - ONLY SHOWS SELECTED ITEMS */}
+          {showBill && (
+            <div className="mb-6 p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl text-slate-800 font-mono text-xs shadow-inner">
+              <div className="text-center pb-2 border-b border-dashed border-amber-300">
+                <p className="font-bold text-sm tracking-wider uppercase">*** PocketMart Receipt ***</p>
+                <p className="text-[10px] text-slate-500">{new Date().toLocaleDateString()} | Selected Items Only</p>
+              </div>
+
+              <div className="py-3 space-y-1 max-h-40 overflow-y-auto">
+                {selectedItems.length === 0 ? (
+                  <p className="text-center text-slate-400 py-2 italic">No items selected yet. Click on items below to add to your bill.</p>
+                ) : (
+                  selectedItems.map(item => (
+                    <div key={item.id} className="flex justify-between items-center text-[11px]">
+                      <span className="truncate max-w-[180px]">{item.name} (x{item.qty})</span>
+                      <span>₹{item.price * item.qty}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-dashed border-amber-300 space-y-1 font-bold">
+                <div className="flex justify-between text-slate-600">
+                  <span>Selected Items:</span>
+                  <span>{selectedItems.length} ({selectedTotalQty} units)</span>
+                </div>
+                <div className="flex justify-between text-slate-900 text-sm pt-1 border-t border-amber-300/50">
+                  <span>GRAND TOTAL:</span>
+                  <span className="text-emerald-700">₹{selectedTotalPrice}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Grocery Item List */}
+          <ul className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+            {items.length === 0 ? (
+              <li className="text-center py-10 text-slate-400 text-xs font-light">Your cart is empty. 🛍️</li>
+            ) : (
+              items.map((item) => (
+                <li
+                  key={item.id}
+                  className={`group flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 ${
+                    item.bought ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-950 font-medium' : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-sm text-slate-700'
+                  }`}
+                >
+                  <div onClick={() => toggleBought(item.id)} className="flex items-center gap-3 cursor-pointer flex-1">
+                    <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${item.bought ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 group-hover:border-emerald-400'}`}>
+                      {item.bought && "✓"}
+                    </div>
+                    <span className={`text-sm select-none ${item.bought ? 'font-semibold text-emerald-900' : 'font-medium text-slate-700'}`}>
+                      {item.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200/50">
+                      x{item.qty} {item.price > 0 ? `@ ₹${item.price} = ₹${item.price * item.qty}` : ''}
+                    </span>
+                    <button onClick={() => deleteItem(item.id)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 transition-all">
+                      ✕
+                    </button>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+
+        </main>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<PocketMart />);
+  </script>
+</body>
+</html>
